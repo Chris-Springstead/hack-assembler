@@ -7,7 +7,8 @@ def main():
 	path_to_file = sys.argv[1]
 	input_file = open(path_to_file, 'r')
 	for line in input_file:
-		print(line)
+		# gets rid of the extra lines that are occuring when printing
+		print(line, end="")
 
 	# symbol tabel which will hold values for labels and variables 
 	symbol_tabel = {"R0" : 0, "R1": 1, "R2" : 2} 
