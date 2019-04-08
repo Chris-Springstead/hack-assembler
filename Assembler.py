@@ -1,28 +1,77 @@
 # Project 6 Assembler written in Python3
 
 import sys
+import os
 
-def main():
-	#getting argument from command line
-	path_to_file = sys.argv[1]
-	input_file = open(path_to_file, 'r')
+# getting argument from command line
+path_to_file = sys.argv[1]
+input_file = open(path_to_file, 'r')
+
+# symbol tabel which will hold values for labels and variables 
+symbol_tabel = {"SP" : 0, "LCL" : 1, "ARG" : 2, "THIS" : 3, "THAT" : 4, "R0" : 0,  "R1" : 1,  "R2" : 2,  "R3" : 3,  "R4" : 4,  "R5" : 5,  "R6" : 6, "R7" : 7, "R8" : 8, "R9" : 9, "R10" : 10, "R11" : 11, "R12" : 12, "R13" : 13, "R14" : 14, "R15" : 15, "SCREEN" : 16384, "KBD" : 24576,} 
+variable_pointer = 16
+comp = {
+	"0" : "0101010",
+	"1" : "0111111",
+	"-1" : "0111010",
+	"D" : "0001100",
+	"A" : "0110000",
+	"!D" : "0001101",
+	"!A" : "0110001",
+	"-D" : "0001111",
+	"-A" : "0110011",
+	"D+1" : "0011111",
+	"A+1" : "0110111",
+	"D-1" : "0001110",
+	"A-1" : "0110010",
+	"D+A" : "0000010",
+	"D-A" : "0010011",
+	"A-D" : "0000111",
+	"D&A" : "0000000",
+	"D|A" : "0010101",
+	"M" : "1110000",
+	"!M" : "1110001",
+	"-M" : "1110011",
+	"M+1" : "1110111",
+	"M-1" : "1110010",
+	"D+M" : "1000010",
+	"D-M" : "1010011",
+	"M-D" : "1000111",
+	"D&M" : "1000000",
+	"D|M" : "1010101",
+}
+
+dest = {
+	"null" : "000",
+	"M" : "001",
+	"D" : "010",
+	"MD" : "011",
+	"A" : "100",
+	"AM" : "101",
+	"AD" : "110",
+	"AMD" : "111",
+}
+
+jump = {
+	"null" : "000",
+	"JGT" : "001",
+	"JEQ" : "010",
+	"JGE" : "011",
+	"JLT" : "100",
+	"JNE" : "101",
+	"JLE" : "110",
+	"JMP" : "111",
+}
+
+# first pass used for finding labels
+def fristPass():
+	global variable_pointer
 	for line in input_file:
-		# gets rid of the extra lines that are occuring when printing
-		print(line, end="")
-
-	# symbol tabel which will hold values for labels and variables 
-	symbol_tabel = {"R0" : 0, "R1": 1, "R2" : 2} 
-
-	# first pass used for finding labels
-	'''
-	def firstPass():
-
-	# second pass used for reading asm code
-	def secondPass():
-
-	def main():
-		firstPass()
-		secondPass()
-	'''	
-if __name__ == '__main__':
-	main()
+		token = line.strip()
+		if token != "":
+			if token[0] == '(':
+				new_symbol = {token[1:-1] : variable_pointer}
+				symbol_tabel.update(new_symbol)
+				variable_pointer = variable_pointer + 1
+	print(symbol_tabel)
+fristPass()
