@@ -63,21 +63,21 @@ jump = {
 
 #adds null chars were need in c-instruction
 def add_null(line):
-	line = line[:-1]
 	if not "=" in line:
 		line = "null=" + line
 	if not ";" in line:
 		line = line + ";null"
 	return line
 
-# takes out whitespace and commnets
-def remove_comments_whitespace(line):
+# takes out whitespace and commnets\
+def fix_file(line):
 	if line[0] == "/" or line[0] == "\n":
 		return ""
 	elif line[0] == " ":
-		return remove_comments_whitespace(line[1:])
+		return fix_file(line[1:])
 	else:
-		return line[0] + remove_comments_whitespace(line[1:])
+		return line[0] + fix_file(line[1:])
+	
 
 # determines if a or c instruction
 def a_or_c(token):
@@ -94,7 +94,8 @@ def c_to_binary(token):
 	token = add_null(token)
 	new_token = token.split("=")
 	dest_bits = dest.get(new_token[0], "no-dest")
-	#comp bits
+
+	#comp and jump bits
 	new_token = new_token[1].split(";")
 	comp_bits = comp.get(new_token[0], "no-comp")
 	jump_bits = jump.get(new_token[1], "no-jump")
@@ -104,41 +105,56 @@ def c_to_binary(token):
 # ronvert a-instruction to binary
 def a_to_binary(token):
 	global variable_pointer
+
+	# if token is a string
 	if token[1].isalpha():
-		var = token[1:-1]
+		var = token[1:]
 		temp = symbol_tabel.get(var, -1)
+		# if value is not in symbol table
 		if temp == -1:
-			symbol_tabel.update({var : variable_pointer})
+			new_symbol = {var : variable_pointer}
+			symbol_tabel.update(new_symbol)
 			variable_pointer = variable_pointer + 1
-		# else:
-		# 	temp = int(token[1:-1])
-		binary = bin(temp)[2:].zfill(16)
-		return binary
+			temp = int(symbol_tabel.get(var))
+			return bin(temp)[2:].zfill(16)
+		else:
+			temp = int(symbol_tabel.get(var))
+			return bin(temp)[2:].zfill(16)
+	# if token is a number already
+	elif token[1:].isnumeric():
+		temp = int(token[1:])
+		return bin(temp)[2:].zfill(16)
 
 # first pass used for finding labels
 def fristPass():
 	path_to_file = sys.argv[1]
-	input_file = open(path_to_file, 'r')	
-	global variable_pointer
+	input_file = open(path_to_file, 'r')
+	file_without_end = path_to_file[:-4]	
+	temp_out = open(file_without_end + ".tmp", "w")
+	line_num =  0
 	for line in input_file:
-		token = remove_comments_whitespace(line)
-		token = token[:-1]
+		token = fix_file(line)
 		if token != "":
 			if token[0] == "(":
-				new_symbol = {token[1:-1] : variable_pointer}
+				new_symbol = {token[1:-1] : line_num}
 				symbol_tabel.update(new_symbol)
-				variable_pointer = variable_pointer + 1
+			else:
+				line_num += 1
+				temp_out.write(token + "\n")
+
 
 # second pass
 def secondPass():
 	path_to_file = sys.argv[1]
-	input_file = open(path_to_file, 'r')
 	file_without_end = path_to_file[:-4]
+	input_file = open(file_without_end + ".tmp", "r")
+	output_file = open(file_without_end + ".hack", "w")
 	for line in input_file:
-		token = remove_comments_whitespace(line)
+		token = fix_file(line)
 		final_line = a_or_c(token)
-		output_file = open(file_without_end + ".hack", "w")
-		output_file.write(str(final_line) + "\n")
+		output_file.write(str(final_line))
+		output_file.write("\n")
+	os.remove(file_without_end + ".tmp")
 
 fristPass()
 secondPass()
